@@ -23,8 +23,6 @@ def training_model(token):
     Ticker = yf.Ticker(token)
     df = Ticker.history(period="max")
     df = pd.DataFrame(df)
-    df['H-L'] = df['High'] - df['Low']
-    df['O-C'] = df['Open'] - df['Close']
 
     # df=pd.read_csv("BTC-USD.csv")
     # df.head()
