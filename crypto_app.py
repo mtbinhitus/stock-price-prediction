@@ -57,10 +57,19 @@ def load_and_predict(token):
     real_prices.index = real_prices['Date']
     valid.index = valid['Date']
     valid['Predictions'] = np.flip(predict_prices)
-    return real_prices, valid
+
+    x_predict = df[len(df)-pre_day:][cols_x].values.reshape(-1, len(cols_x))
+    x_predict = scala_x.transform(x_predict)
+    x_predict = np.array(x_predict)
+    x_predict = x_predict.reshape(1, x_predict.shape[0], len(cols_x))
+    prediction = model.predict(x_predict)
+    prediction = scala_y.inverse_transform(prediction)
+    print(prediction)
+
+    return real_prices, valid, prediction
 
 symbols = ["BTC-USD", "ETH-USD", "ADA-USD"]
-test_size = 60
+test_size = 120
 pre_day = 30
 ma_1 = 7
 ma_2 = 14
@@ -68,9 +77,9 @@ ma_3 = 21
 
 app = dash.Dash()
 server = app.server
-rp_btc, valid_btc = load_and_predict(symbols[0])
-rp_eth, valid_eth = load_and_predict(symbols[1])
-rp_ada, valid_ada = load_and_predict(symbols[2])
+rp_btc, valid_btc, lastest_btc = load_and_predict(symbols[0])
+rp_eth, valid_eth, lastest_eth = load_and_predict(symbols[1])
+rp_ada, valid_ada, lastest_ada = load_and_predict(symbols[2])
 
 app.layout = html.Div([
    
@@ -81,6 +90,7 @@ app.layout = html.Div([
         dcc.Tab(label='BTC-USD Crypto Data',children=[
 			html.Div([
 				html.H2("Actual closing price",style={"textAlign": "center"}),
+                html.H3(f"Price prediction for tomorrow: {lastest_btc[0][0]:.2f} USD",style={"textAlign": "center"}),
 				dcc.Graph(
 					id="Actual Data BTC",
 					figure={
@@ -127,6 +137,7 @@ app.layout = html.Div([
        dcc.Tab(label='ETH-USD Crypto Data',children=[
 			html.Div([
 				html.H2("Actual closing price",style={"textAlign": "center"}),
+                html.H3(f"Price prediction for tomorrow: {lastest_eth[0][0]:.2f} USD",style={"textAlign": "center"}),
 				dcc.Graph(
 					id="Actual Data ETH",
 					figure={
@@ -173,6 +184,7 @@ app.layout = html.Div([
         dcc.Tab(label='ADA-USD Crypto Data',children=[
 			html.Div([
 				html.H2("Actual closing price",style={"textAlign": "center"}),
+                html.H3(f"Price prediction for tomorrow: {lastest_ada[0][0]:.2f} USD",style={"textAlign": "center"}),
 				dcc.Graph(
 					id="Actual Data ADA",
 					figure={
